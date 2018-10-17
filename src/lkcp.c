@@ -88,7 +88,6 @@ static int lkcp_create(lua_State* L){
         lua_pushstring(L, "error: fail to create kcp");
         return 2;
     }
-
     kcp->output = kcp_output_callback;
 
     *(ikcpcb**)lua_newuserdata(L, sizeof(void*)) = kcp;
@@ -215,6 +214,51 @@ static int lkcp_nodelay(lua_State* L){
     return 1;
 }
 
+static int lkcp_peeksize(lua_State* L) {
+	ikcpcb* kcp = check_kcp(L, 1);
+	if (kcp == NULL) {
+		lua_pushnil(L);
+		lua_pushstring(L, "error: kcp not args");
+		return 2;
+	}
+	lua_pushinteger(L,ikcp_peeksize(kcp));
+	return 1;
+}
+
+static int lkcp_setmtu(lua_State* L) {
+	ikcpcb* kcp = check_kcp(L, 1);
+	if (kcp == NULL) {
+		lua_pushnil(L);
+		lua_pushstring(L, "error: kcp not args");
+		return 2;
+	}
+	int32_t mtu = luaL_checkinteger(L,2);
+	int32_t ret = ikcp_setmtu(kcp,mtu);
+	lua_pushinteger(L,ret);
+	return 1;
+}
+
+static int lkcp_waitsnd(lua_State* L) {
+	ikcpcb* kcp = check_kcp(L, 1);
+	if (kcp == NULL) {
+		lua_pushnil(L);
+		lua_pushstring(L, "error: kcp not args");
+		return 2;
+	}
+	lua_pushinteger(L,ikcp_waitsnd(kcp));
+	return 1;
+}
+
+static int lkcp_getconv(lua_State* L) {
+	if (lua_isnoneornil(L,1)) {
+		return 0;
+	}
+	size_t size;
+	const char *buffer = luaL_checklstring(L, 1, &size);
+	lua_pushinteger(L,ikcp_getconv(buffer));
+	return 1;
+}
+
 
 static const struct luaL_Reg lkcp_methods [] = {
     { "lkcp_recv" , lkcp_recv },
@@ -225,11 +269,15 @@ static const struct luaL_Reg lkcp_methods [] = {
     { "lkcp_flush" , lkcp_flush },
     { "lkcp_wndsize" , lkcp_wndsize },
     { "lkcp_nodelay" , lkcp_nodelay },
+	{ "lkcp_peeksize",lkcp_peeksize },
+	{ "lkcp_setmtu",lkcp_setmtu },
+	{ "lkcp_waitsnd",lkcp_waitsnd },
 	{NULL, NULL},
 };
 
 static const struct luaL_Reg l_methods[] = {
     { "lkcp_create" , lkcp_create },
+	{ "lkcp_getconv",lkcp_getconv },
     {NULL, NULL},
 };
 
