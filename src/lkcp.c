@@ -300,25 +300,25 @@ static int lkcp_getconv(lua_State* L) {
 
 
 static const struct luaL_Reg lkcp_methods [] = {
-    { "lkcp_recv" , lkcp_recv },
-    { "lkcp_send" , lkcp_send },
-    { "lkcp_update" , lkcp_update },
-    { "lkcp_check" , lkcp_check },
-    { "lkcp_input" , lkcp_input },
-    { "lkcp_flush" , lkcp_flush },
-    { "lkcp_wndsize" , lkcp_wndsize },
-    { "lkcp_nodelay" , lkcp_nodelay },
-    { "lkcp_setstream" , lkcp_setstream },
-    { "lkcp_setminrto" , lkcp_setminrto },
-	{ "lkcp_peeksize",lkcp_peeksize },
-	{ "lkcp_setmtu",lkcp_setmtu },
-	{ "lkcp_waitsnd",lkcp_waitsnd },
+    { "recv" , lkcp_recv },
+    { "send" , lkcp_send },
+    { "update" , lkcp_update },
+    { "check" , lkcp_check },
+    { "input" , lkcp_input },
+    { "flush" , lkcp_flush },
+    { "wndsize" , lkcp_wndsize },
+    { "nodelay" , lkcp_nodelay },
+    { "setstream" , lkcp_setstream },
+    { "setminrto" , lkcp_setminrto },
+	{ "peeksize",lkcp_peeksize },
+	{ "setmtu",lkcp_setmtu },
+	{ "waitsnd",lkcp_waitsnd },
 	{NULL, NULL},
 };
 
 static const struct luaL_Reg l_methods[] = {
-    { "lkcp_create" , lkcp_create },
-	{ "lkcp_getconv",lkcp_getconv },
+    { "create" , lkcp_create },
+	{ "getconv",lkcp_getconv },
     {NULL, NULL},
 };
 

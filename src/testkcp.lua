@@ -31,7 +31,7 @@ local function test(mode)
         a = 'aaa',
         b = false,
     }
-    local kcp1 = LKcp.lkcp_create(session, function (buf)
+    local kcp1 = LKcp.create(session, function (buf)
         udp_output(buf, info)
     end)
     local info2 = {
@@ -42,7 +42,7 @@ local function test(mode)
             print 'hahahah!!!'
         end,
     }
-    local kcp2 = LKcp.lkcp_create(session, function (buf)
+    local kcp2 = LKcp.create(session, function (buf)
         udp_output(buf, info2)
     end)
 
@@ -57,26 +57,26 @@ local function test(mode)
 
 	--配置窗口大小：平均延迟200ms，每20ms发送一个包，
 	--而考虑到丢包重发，设置最大收发窗口为128
-	kcp1:lkcp_wndsize(128, 128)
-	kcp2:lkcp_wndsize(128, 128)
+	kcp1:wndsize(128, 128)
+	kcp2:wndsize(128, 128)
 
 	--判断测试用例的模式
     if mode == 0 then
 		--默认模式
-        kcp1:lkcp_nodelay(0, 10, 0, 0)
-        kcp2:lkcp_nodelay(0, 10, 0, 0)
+        kcp1:nodelay(0, 10, 0, 0)
+        kcp2:nodelay(0, 10, 0, 0)
     elseif mode == 1 then
 		--普通模式，关闭流控等
-        kcp1:lkcp_nodelay(0, 10, 0, 1)
-        kcp2:lkcp_nodelay(0, 10, 0, 1)
+        kcp1:nodelay(0, 10, 0, 1)
+        kcp2:nodelay(0, 10, 0, 1)
     else
 		--启动快速模式
 		--第二个参数 nodelay-启用以后若干常规加速将启动
 		--第三个参数 interval为内部处理时钟，默认设置为 10ms
 		--第四个参数 resend为快速重传指标，设置为2
 		--第五个参数 为是否禁用常规流控，这里禁止
-        kcp1:lkcp_nodelay(1, 10, 2, 1)
-        kcp2:lkcp_nodelay(1, 10, 2, 1)
+        kcp1:nodelay(1, 10, 2, 1)
+        kcp2:nodelay(1, 10, 2, 1)
     end
 
     local buffer = ""
@@ -87,8 +87,8 @@ local function test(mode)
     while 1 do
         current = getms()
 
-        local nextt1 = kcp1:lkcp_check(current) 
-        local nextt2 = kcp2:lkcp_check(current)
+        local nextt1 = kcp1:check(current) 
+        local nextt2 = kcp2:check(current)
         local nextt = math.min(nextt1, nextt2)
         local diff = nextt - current
         if diff > 0 then
@@ -96,15 +96,15 @@ local function test(mode)
             current = getms()
         end
         
-        kcp1:lkcp_update(current)
-        kcp2:lkcp_update(current)
+        kcp1:update(current)
+        kcp2:update(current)
         
 		--每隔 20ms，kcp1发送数据
         while current >= slap do
             local s1 = LUtil.uint322netbytes(index)
             local s2 = LUtil.uint322netbytes(current)
-            kcp1:lkcp_send(s1..s2)
-            --kcp1:lkcp_flush()
+            kcp1:send(s1..s2)
+            --kcp1:flush()
             slap = slap + 20
             index = index + 1
         end
@@ -116,7 +116,7 @@ local function test(mode)
                 break
             end
 			--如果 p2收到udp，则作为下层协议输入到kcp2
-			kcp2:lkcp_input(hr)
+			kcp2:input(hr)
         end
 
 		--处理虚拟网络：检测是否有udp包从p2->p1
@@ -126,22 +126,22 @@ local function test(mode)
                 break
             end
 			--如果 p1收到udp，则作为下层协议输入到kcp1
-			kcp1:lkcp_input(hr)
+			kcp1:input(hr)
         end
 
         --kcp2接收到任何包都返回回去
         while 1 do
-            hrlen, hr = kcp2:lkcp_recv()
+            hrlen, hr = kcp2:recv()
             if hrlen <= 0 then
                 break
             end
-            kcp2:lkcp_send(hr)
-            --kcp2:lkcp_flush()
+            kcp2:send(hr)
+            --kcp2:flush()
         end
 
 		--kcp1收到kcp2的回射数据
 		while 1 do
-		    hrlen, hr = kcp1:lkcp_recv()
+		    hrlen, hr = kcp1:recv()
 			--没有收到包就退出
 			if hrlen <= 0 then
                 break
