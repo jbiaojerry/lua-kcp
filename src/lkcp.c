@@ -44,10 +44,22 @@ struct Callback {
     lua_State* L;
 };
 
+static void check_kcp_output_callback(lua_State* L, struct Callback* c, int index) {
+	luaL_checktype(L, index, LUA_TFUNCTION);
+	luaL_unref(L, LUA_REGISTRYINDEX, c -> handle);
+	lua_pushvalue(L, index);
+	c -> handle = luaL_ref(L, LUA_REGISTRYINDEX);
+}
+
 static int kcp_output_callback(const char *buf, int len, ikcpcb *kcp, void *arg) {
     struct Callback* c = (struct Callback*)arg;
     lua_State* L = c -> L;
     uint64_t handle = c -> handle;
+
+	if (handle == LUA_NOREF) {
+		lua_pop(L, 1);
+		return 0;
+	}
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, handle);
     lua_pushlstring(L, buf, len);
@@ -65,6 +77,7 @@ static int kcp_gc(lua_State* L) {
         struct Callback* c = (struct Callback*)kcp -> user;
         uint64_t handle = c -> handle;
         luaL_unref(L, LUA_REGISTRYINDEX, handle);
+		lua_pop(L, 1);
         free(c);
         kcp->user = NULL;
     }
@@ -79,8 +92,9 @@ static int lkcp_create(lua_State* L){
 
     struct Callback* c = malloc(sizeof(struct Callback));
     memset(c, 0, sizeof(struct Callback));
-    c -> handle = handle;
     c -> L = L;
+    c -> handle = LUA_NOREF;
+	check_kcp_output_callback(L, c, 2);
 
     ikcpcb* kcp = ikcp_create(conv, (void*)c);
     if (kcp == NULL) {
