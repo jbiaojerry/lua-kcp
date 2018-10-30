@@ -87,7 +87,6 @@ static int kcp_gc(lua_State* L) {
 }
 
 static int lkcp_create(lua_State* L){
-    uint64_t handle = luaL_ref(L, LUA_REGISTRYINDEX);
     int32_t conv = luaL_checkinteger(L, 1);
 
     struct Callback* c = malloc(sizeof(struct Callback));
