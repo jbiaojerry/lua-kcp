@@ -1,17 +1,17 @@
 /**
  *
  * Copyright (C) 2015 by David Lin
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -130,7 +130,7 @@ static int lkcp_send(lua_State* L){
 	size_t size;
 	const char *data = luaL_checklstring(L, 2, &size);
     int32_t hr = ikcp_send(kcp, data, size);
-    
+
     lua_pushinteger(L, hr);
     return 1;
 }
@@ -170,7 +170,7 @@ static int lkcp_input(lua_State* L){
 	size_t size;
 	const char *data = luaL_checklstring(L, 2, &size);
     int32_t hr = ikcp_input(kcp, data, size);
-    
+
     lua_pushinteger(L, hr);
     return 1;
 }
@@ -215,6 +215,46 @@ static int lkcp_nodelay(lua_State* L){
     return 1;
 }
 
+//@author ChenZe
+static int lkcp_setmtu(lua_State* L){
+	ikcpcb* kcp = check_kcp(L, 1);
+	if (kcp == NULL) {
+        lua_pushnil(L);
+        lua_pushstring(L, "error: kcp not args");
+        return 2;
+	}
+    int32_t mtu = luaL_checkinteger(L, 2);
+    ikcp_setmtu(kcp, mtu);
+    return 0;
+}
+
+//@author ChenZe
+static int lkcp_setstream(lua_State* L){
+	ikcpcb* kcp = check_kcp(L, 1);
+	if (kcp == NULL) {
+        lua_pushnil(L);
+        lua_pushstring(L, "error: kcp not args");
+        return 2;
+	}
+    int32_t stream = luaL_checkinteger(L, 2);
+	kcp->stream=stream;
+    return 0;
+}
+
+//@author ChenZe
+static int lkcp_setminrto(lua_State* L){
+	ikcpcb* kcp = check_kcp(L, 1);
+	if (kcp == NULL) {
+        lua_pushnil(L);
+        lua_pushstring(L, "error: kcp not args");
+        return 2;
+	}
+    int32_t minrto = luaL_checkinteger(L, 2);
+	kcp->rx_minrto=minrto;
+    return 0;
+}
+
+
 
 static const struct luaL_Reg lkcp_methods [] = {
     { "lkcp_recv" , lkcp_recv },
@@ -225,6 +265,9 @@ static const struct luaL_Reg lkcp_methods [] = {
     { "lkcp_flush" , lkcp_flush },
     { "lkcp_wndsize" , lkcp_wndsize },
     { "lkcp_nodelay" , lkcp_nodelay },
+    { "lkcp_setmtu" , lkcp_setmtu },
+    { "lkcp_setstream" , lkcp_setstream },
+    { "lkcp_setminrto" , lkcp_setminrto },
 	{NULL, NULL},
 };
 
